@@ -41,7 +41,6 @@ router.get([
 
 //-----------------------------------------------------------
 
-const quizController = require('../controllers/quiz'); 
 /* GET home page. */
 router.get('/', (req, res, next) => {
   res.render('index');
