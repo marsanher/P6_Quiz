@@ -40,6 +40,16 @@ quiz.belongsTo(user, {as: 'author', foreignKey: 'authorId'});
 
 user.hasMany(tip, {foreignKey: 'authorId'});
 tip.belongsTo(user, {as: 'author', foreignKey: 'authorId'});
+// Session
+sequelize.import(path.join(__dirname,'session'));
+
+// Create tables
+sequelize.sync()
+.then(() => console.log('Data Bases created successfully'))
+.catch(error => {
+    console.log("Error creating the data base tables:", error);
+    process.exit(1);
+});
 
 
 module.exports = sequelize;

@@ -41,6 +41,8 @@
         <% if (session.user) { %>
             <a href="/users">Users</a>
         <% } %>
+        <a href="/author">Author</a>
+	<a href="/quizzes/randomplay">Play</a>
     </nav>
 
     <section class="main" id="mainSection">
@@ -79,7 +81,6 @@
         <% } %>
 
         <%- body %>
-
         <% if (locals.paginate_control) { %>
         <%- paginate_control %>
         <% } %>

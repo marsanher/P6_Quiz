@@ -1,4 +1,5 @@
 const Sequelize = require("sequelize");
+<<<<<<< HEAD
 const Op = Sequelize.Op;
 const {models} = require("../models");
 
@@ -16,16 +17,6 @@ exports.load = (req, res, next, quizId) => {
             {model: models.user, as: 'author'},
         ]
     })
-    .then(quiz => {
-        if (quiz) {
-            req.quiz = quiz;
-            next();
-        } else {
-            throw new Error('There is no quiz with id=' + quizId);
-        }
-    })
-    .catch(error => next(error));
-};
 
 
 // MW that allows actions only if the user logged in is admin or is the author of the quiz.
@@ -95,8 +86,12 @@ exports.index = (req, res, next) => {
             search,
             title
         });
-    })
-    .catch(error => next(error));
+// GET /quizzes
+exports.index = (req, res, next) => {
+
+    models.quiz.findAll()
+    .then(quizzes => {
+        res.render('quizzes/index.ejs', {quizzes});
 };
 
 
@@ -124,7 +119,6 @@ exports.new = (req, res, next) => {
 exports.create = (req, res, next) => {
 
     const {question, answer} = req.body;
-
     const authorId = req.session.user && req.session.user.id || 0;
 
     const quiz = models.quiz.build({
@@ -135,6 +129,13 @@ exports.create = (req, res, next) => {
 
     // Saves only the fields question and answer into the DDBB
     quiz.save({fields: ["question", "answer", "authorId"]})
+    const quiz = models.quiz.build({
+        question,
+        answer
+    });
+
+    // Saves only the fields question and answer into the DDBB
+    quiz.save({fields: ["question", "answer"]})
     .then(quiz => {
         req.flash('success', 'Quiz created successfully.');
         res.redirect('/quizzes/' + quiz.id);
@@ -192,11 +193,8 @@ exports.destroy = (req, res, next) => {
     .then(() => {
         req.flash('success', 'Quiz deleted successfully.');
         res.redirect('/goback');
-    })
-    .catch(error => {
-        req.flash('error', 'Error deleting the Quiz: ' + error.message);
-        next(error);
-    });
+        res.redirect('/quizzes');
+
 };
 
 
@@ -228,3 +226,47 @@ exports.check = (req, res, next) => {
         answer
     });
 };
+exports.randomplay = (req, res, next) => {
+    req.session.randomPlay = req.session.randomPlay || [];
+    const op = {'id': {[Sequelize.Op.notIn]: req.session.randomPlay}};
+    models.quiz.count({where: op})
+    .then(function(count){
+        if(!count){
+            let score = req.session.randomPlay.length;
+            req.session.randomPlay = [];
+            res.render('quizzes/random_nomore', {score:score});
+        }
+        let offset = Math.floor(Math.random() * count);
+        return models.quiz.findAll({
+            where: op,
+            offset: offset
+        })
+        .then(function(quizzes){
+            return quizzes[0];
+        });
+    })
+    .then(function(quiz){
+        res.render('quizzes/random_play', {quiz: quiz, score: req.session.randomPlay.length});
+    });
+};
+
+exports.randomcheck = (req, res, next) => {
+        req.session.randomPlay = req.session.randomPlay || [];
+        const answer = req.query.answer || "";
+        const result = answer.toLowerCase().trim() === req.quiz.answer.toLowerCase().trim();
+        let score = 0;
+        
+        if (result) {
+            if (req.session.randomPlay.indexOf(req.quiz.id) === -1) {
+                req.session.randomPlay.push(req.quiz.id);
+                score = req.session.randomPlay.length;
+            }
+        } else {
+            req.session.randomPlay = [];
+        }
+        res.render('quizzes/random_result', {
+            answer,
+            result,
+            score
+        });
+    };

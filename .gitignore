@@ -1,4 +1,8 @@
 node_modules
 .DS_Store
+<<<<<<< HEAD
 quiz.sqlite
+=======
+quizzes.sqlite
+>>>>>>> origin/practica6
 .env
